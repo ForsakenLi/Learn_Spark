@@ -3,11 +3,10 @@ package xyz.notmot.learn.RDD
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
-import org.junit.Test
 
 class WordCount {
 
-  def main(args: Array[String]): Unit = {
+  def wc(args: Array[String]): Unit = {
     // 1. 创建SparkContext
     val conf = new SparkConf().setAppName("word_count")
     val sc = new SparkContext(conf)
@@ -36,7 +35,7 @@ class WordCount {
     result.foreach(item => println(item))
   }
 
-  @Test
+  
   def sparkContext(): Unit = {
     // 1. Spark Context 如何编写
     //     1. 创建 SparkConf
@@ -54,7 +53,7 @@ class WordCount {
   val sc = new SparkContext(conf)
 
   // 从本地集合创建
-  @Test
+  
   def rddCreationLocal(): Unit = {
     val seq = Seq(1, 2, 3)
     val rdd1: RDD[Int] = sc.parallelize(seq, 2)
@@ -63,7 +62,7 @@ class WordCount {
   }
 
   // 从文件创建
-  @Test
+  
   def rddCreationFiles(): Unit = {
     sc.textFile("file:///...")
 
@@ -78,7 +77,7 @@ class WordCount {
   }
 
   // 从RDD衍生
-  @Test
+  
   def rddCreateFromRDD(): Unit = {
     val rdd1 = sc.parallelize(Seq(1, 2, 3))
     // 通过在rdd上执行算子操作, 会生成新的 rdd
@@ -89,7 +88,7 @@ class WordCount {
     val rdd2: RDD[Int] = rdd1.map(item => item)
   }
 
-  @Test
+  
   def mapTest(): Unit = {
     // 1. 创建 RDD
     val rdd1 = sc.parallelize(Seq(1, 2, 3))
@@ -100,7 +99,7 @@ class WordCount {
     result.foreach(item => println(item))
   }
 
-  @Test
+  
   def flatMapTest(): Unit = {
     // 1. 创建 RDD
     val rdd1 = sc.parallelize(Seq("Hello lily", "Hello lucy", "Hello tim"))
@@ -113,7 +112,7 @@ class WordCount {
     sc.stop()
   }
 
-  @Test
+  
   def reduceByKeyTest(): Unit = {
     // 1. 创建 RDD
     val rdd1 = sc.parallelize(Seq("Hello lily", "Hello lucy", "Hello tim"))
@@ -122,13 +121,38 @@ class WordCount {
       .map( item => (item, 1) )
       .reduceByKey( (curr, agg) => curr + agg )
     // 这里的reduceByKey后面的函数式的含义是，当遇到两个具有相同key的元组时
-    // 会将一个和另一个的value加起来，后面的函数式指的是这两个value的操作，
-    // 可以简记为
+    // 会将一个（当前汇总）和另一个的value加起来，后面的函数式指的是这两个value的操作，
+    // 可以简记为_+_
+    // https://www.jianshu.com/p/af175e66ce99
+
     // 3. 得到结果
     val result = rdd2.collect()
     result.foreach(item => println(item))
     // 4. 关闭sc
     sc.stop()
+  }
+
+  
+  def combineByKeyTest(): Unit = {
+    val rdd = sc.parallelize(Seq(
+      ("zhangsan", 99.0),
+      ("zhangsan", 96.0),
+      ("lisi", 97.0),
+      ("lisi", 98.0),
+      ("zhangsan", 97.0))
+    )
+
+    val combineRdd = rdd.combineByKey(
+      score => (score, 1),
+      (scoreCount: (Double, Int),newScore) => (scoreCount._1 + newScore, scoreCount._2 + 1),
+      (scoreCount1: (Double, Int), scoreCount2: (Double, Int)) =>
+        (scoreCount1._1 + scoreCount2._1, scoreCount1._2 + scoreCount2._2)
+    )
+
+    val meanRdd = combineRdd.map(score => (score._1, score._2._1 / score._2._2))
+
+    val res = meanRdd.collect()
+    res.foreach(item => println(item))
   }
 
 }
