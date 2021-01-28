@@ -103,7 +103,6 @@ class CacheOp {
     // 如果调用 checkpoint, 则会重新计算一下 RDD, 然后把结果存在 HDFS 或者本地目录中
     // 所以, 应该在 Checkpoint 之前, 进行一次 Cache
     aggRDD = aggRDD.cache()
-
     aggRDD.checkpoint()
 
     // 两个 RDD 的 Action 操作

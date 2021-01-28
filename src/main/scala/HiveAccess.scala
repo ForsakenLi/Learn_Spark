@@ -5,7 +5,7 @@ import java.util.Date
 
 object HiveAccess {
 
-  def main(args: Array[String]): Unit = {
+  def main2(args: Array[String]): Unit = {
     //    0. 创建 SparkSession
     //    1. 开启 Hive 支持
     //    2. 指定 Metastore 的位置
@@ -36,7 +36,7 @@ object HiveAccess {
 
     timeStart = new Date().getTime
     //println("总收入为：")
-    spark.sql("select USM(c_amount) as total_income from mytable where c_type == 1 or c_type == 3").show()
+    spark.sql("select SUM(c_amount) as total_income from mytable where c_type == 1 or c_type == 3").show()
     //println("总支出为：")
     spark.sql("select SUM(c_amount) as total_expend from mytable where c_type == 2 or c_type == 4").show()
     timeEnd = new Date().getTime
